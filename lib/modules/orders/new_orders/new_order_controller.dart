@@ -10,7 +10,7 @@ class NewOrderController extends GetxController {
   final RxList<OrderModel> orders = <OrderModel>[].obs;
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
-  
+
   // Socket service
   late SocketService _socketService;
 
@@ -67,7 +67,7 @@ class NewOrderController extends GetxController {
       if (data != null) {
         final order = OrderModel.fromJson(Map<String, dynamic>.from(data));
         orders.add(order);
-        
+
         LogsUtils.info(
           "✅ [NEW ORDERS] Successfully added order: ${order.orderId}",
           name: "NewOrderController",
@@ -113,9 +113,7 @@ class NewOrderController extends GetxController {
       // Call acceptOrders API with orderId
       final response = await Api.client.post<Map<String, dynamic>>(
         endPoint: ApiConst.acceptOrders,
-        requestBody: {
-          "orderId": orderId,
-        },
+        requestBody: {"orderId": orderId},
       );
 
       LogsUtils.info(
@@ -135,7 +133,7 @@ class NewOrderController extends GetxController {
         stackTrace: stackTrace,
         name: "NewOrderController",
       );
-      
+
       Get.snackbar('Error', 'Failed to accept order: ${e.toString()}');
     }
   }
@@ -147,16 +145,16 @@ class NewOrderController extends GetxController {
         "❌ [NEW ORDERS] Rejecting order: $orderId",
         name: "NewOrderController",
       );
-      
+
       // You can implement reject order API call here
       // For now, just remove from the list
       orders.removeWhere((order) => order.id == orderId);
-      
+
       LogsUtils.info(
         "❌ [NEW ORDERS] Order $orderId rejected successfully",
         name: "NewOrderController",
       );
-      
+
       Get.snackbar('Success', 'Order rejected');
     } catch (e, stackTrace) {
       LogsUtils.error(
@@ -166,7 +164,7 @@ class NewOrderController extends GetxController {
         stackTrace: stackTrace,
         name: "NewOrderController",
       );
-      
+
       Get.snackbar('Error', 'Failed to reject order: ${e.toString()}');
     }
   }

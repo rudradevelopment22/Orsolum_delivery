@@ -495,7 +495,7 @@ class HomePage extends GetView<HomeController> {
           child: Row(
             children: [
               Text(
-                "New Orders",
+                "New Orders RUDRA",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               Spacer(),
