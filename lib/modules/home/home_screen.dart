@@ -16,6 +16,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:orsolum_delivery/utils/router_utils.dart';
 import 'package:orsolum_delivery/modules/orders/new_orders/new_order_controller.dart';
 
+import '../../models/order_model.dart';
+
 class HomePage extends GetView<HomeController> {
   HomePage({super.key}) {
     // Initialize location services when the widget is created
@@ -486,7 +488,47 @@ class HomePage extends GetView<HomeController> {
   }
 
   /// New orders section
+  // Widget _buildNewOrdersSection() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Padding(
+  //         padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+  //         child: Row(
+  //           children: [
+  //             Text(
+  //               "New Orders",
+  //               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //             ),
+  //             Spacer(),
+  //             GestureDetector(
+  //               onTap: () {
+  //                 Get.put(NewOrderController()); // Initialize controller
+  //                 Get.to(() => const NewOrdersScreen());
+  //               },
+  //               child: Text(
+  //                 "See all Orders",
+  //                 style: TextStyles.body2.copyWith(color: ColorConst.primary),
+  //               ),
+  //             ),
+  //             const Gap(2),
+  //             Icon(
+  //               Icons.check_circle_outline,
+  //               size: 16,
+  //               color: ColorConst.primary,
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //       _buildNewOrderCard(),
+  //     ],
+  //   );
+  // }
+
+  /// New orders section
   Widget _buildNewOrdersSection() {
+    final controller = Get.put(NewOrderController());
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -495,31 +537,87 @@ class HomePage extends GetView<HomeController> {
           child: Row(
             children: [
               Text(
-                "New Orders RUDRA",
+                "New Orders",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               Spacer(),
               GestureDetector(
                 onTap: () {
-                  Get.put(NewOrderController()); // Initialize controller
                   Get.to(() => const NewOrdersScreen());
                 },
                 child: Text(
                   "See all Orders",
-                  style: TextStyles.body2.copyWith(color: ColorConst.primary),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF054FA3)),
                 ),
               ),
-              const Gap(2),
+              const SizedBox(width: 2),
               Icon(
                 Icons.check_circle_outline,
                 size: 16,
-                color: ColorConst.primary,
+                color: Color(0xFF054FA3),
               ),
             ],
           ),
         ),
-        _buildNewOrderCard(),
+        Obx(() {
+          if (controller.isLoading.value) {
+            return Center(child: CircularProgressIndicator());
+          } else if (controller.orders.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text("No new orders"),
+            );
+          } else {
+            return Column(
+              children:
+                  controller.orders
+                      .expand(
+                        (order) => order.data ?? [],
+                      ) // flatten all inner data lists
+                      .map((item) => _buildOrderCard(item))
+                      .toList(),
+            );
+
+            //   Column(
+            //   children:
+            //
+            //   controller.orders
+            //       .map(
+            //         (order) =>
+            //         _buildOrderCard(controller.orders[0].data[]),
+            //   )
+            //       .toList(),
+            // );
+          }
+        }),
       ],
+    );
+  }
+
+  Widget _buildOrderCard(Datum order) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              order.address?.name ?? "Unknown Customer",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Text("Order ID: ${order.orderId ?? ""}"),
+            const SizedBox(height: 4),
+            Text("Pickup: ${order.address?.line1 ?? ""}"),
+            Text("Delivery: ${order.address?.city ?? ""}"),
+            const SizedBox(height: 4),
+            Text(
+              "Total: ₹${order.summary?.totalAmount?.toStringAsFixed(2) ?? "0.00"}",
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -628,192 +726,192 @@ class HomePage extends GetView<HomeController> {
     );
   }
 
-  /// New Order card
-  Widget _buildNewOrderCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: BackgroundContainer(
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.blueAccent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
-                  ),
-                  child: Text(
-                    "New",
-                    style: TextStyle(color: Colors.blueAccent),
-                  ),
-                ),
-                Column(
-                  children: [
-                    Text("John Doe", style: TextStyles.headline6),
-                    Text("ORD-2024-001", style: TextStyles.subTitle2),
-                  ],
-                ),
-              ],
-            ),
-            const Gap(6),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        SvgPicture.asset(AssetConst.box, height: 16, width: 16),
-                        const Gap(8),
-                        Text(
-                          "Powder Garden Mix Soil",
-                          style: TextStyles.subTitle2,
-                        ),
-                      ],
-                    ),
-                    const Gap(4),
-                    Row(children: [const Gap(24), Text("25Kg x 1")]),
-                  ],
-                );
-              },
-              separatorBuilder: (context, index) => const Gap(4),
-              itemCount: 1,
-              padding: EdgeInsets.zero,
-            ),
-            const Gap(10),
-            Row(
-              children: [
-                SvgPicture.asset(AssetConst.bag, height: 16, width: 16),
-                const Gap(8),
-                Text("Shop No. 5, Paldi, Ahmedabad"),
-              ],
-            ),
-            const Gap(6),
-            Row(
-              children: [
-                SvgPicture.asset(AssetConst.location, height: 16, width: 16),
-                const Gap(8),
-                Text("12, Patel Nager, Surat - 395001"),
-              ],
-            ),
-            const Gap(6),
-            Row(
-              children: [
-                SvgPicture.asset(
-                  AssetConst.clock,
-                  colorFilter: ColorFilter.mode(
-                    ColorConst.accentInfo,
-                    BlendMode.srcIn,
-                  ),
-                  height: 16,
-                  width: 16,
-                ),
-                const Gap(8),
-                Text("30-40 mi"),
-                const Gap(10),
-                SvgPicture.asset(
-                  AssetConst.route,
-                  colorFilter: ColorFilter.mode(
-                    ColorConst.accentInfo,
-                    BlendMode.srcIn,
-                  ),
-                  height: 16,
-                  width: 16,
-                ),
-                const Gap(8),
-                Text("2.5 Km"),
-              ],
-            ),
-            const Gap(14),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      // Ensure controller is available
-                      final newOrderController =
-                          Get.isRegistered<NewOrderController>()
-                              ? Get.find<NewOrderController>()
-                              : Get.put(NewOrderController());
-                      // Call acceptOrders API with dynamic order id if available
-                      final orderId =
-                          newOrderController.orders.isNotEmpty
-                              ? newOrderController.orders.first.id
-                              : null;
-                      if (orderId != null && orderId.isNotEmpty) {
-                        newOrderController.acceptOrder(orderId);
-                      } else {
-                        Get.snackbar('No orders', 'No new orders to accept');
-                      }
-                    },
-                    child: Container(
-                      height: 42,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: ColorConst.primary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: ColorConst.white,
-                            size: 16,
-                          ),
-                          const Gap(4),
-                          Text(
-                            "Accept",
-                            style: TextStyles.button.copyWith(
-                              color: ColorConst.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const Gap(16),
-                Expanded(
-                  child: Container(
-                    height: 42,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      border: Border.all(color: ColorConst.primary),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.add_circle,
-                          color: ColorConst.primary,
-                          size: 16,
-                        ),
-                        const Gap(4),
-                        Text("Skip", style: TextStyles.button),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // /// New Order card
+  // Widget _buildNewOrderCard() {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  //     child: BackgroundContainer(
+  //       child: Column(
+  //         children: [
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Container(
+  //                 decoration: BoxDecoration(
+  //                   color: Colors.blueAccent.withValues(alpha: 0.1),
+  //                   borderRadius: BorderRadius.circular(12),
+  //                 ),
+  //                 padding: const EdgeInsets.symmetric(
+  //                   horizontal: 8,
+  //                   vertical: 6,
+  //                 ),
+  //                 child: Text(
+  //                   "New",
+  //                   style: TextStyle(color: Colors.blueAccent),
+  //                 ),
+  //               ),
+  //               Column(
+  //                 children: [
+  //                   Text("John Doe", style: TextStyles.headline6),
+  //                   Text("ORD-2024-001", style: TextStyles.subTitle2),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //           const Gap(6),
+  //           ListView.separated(
+  //             shrinkWrap: true,
+  //             physics: NeverScrollableScrollPhysics(),
+  //             itemBuilder: (context, index) {
+  //               return Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   Row(
+  //                     children: [
+  //                       SvgPicture.asset(AssetConst.box, height: 16, width: 16),
+  //                       const Gap(8),
+  //                       Text(
+  //                         "Powder Garden Mix Soil",
+  //                         style: TextStyles.subTitle2,
+  //                       ),
+  //                     ],
+  //                   ),
+  //                   const Gap(4),
+  //                   Row(children: [const Gap(24), Text("25Kg x 1")]),
+  //                 ],
+  //               );
+  //             },
+  //             separatorBuilder: (context, index) => const Gap(4),
+  //             itemCount: 1,
+  //             padding: EdgeInsets.zero,
+  //           ),
+  //           const Gap(10),
+  //           Row(
+  //             children: [
+  //               SvgPicture.asset(AssetConst.bag, height: 16, width: 16),
+  //               const Gap(8),
+  //               Text("Shop No. 5, Paldi, Ahmedabad"),
+  //             ],
+  //           ),
+  //           const Gap(6),
+  //           Row(
+  //             children: [
+  //               SvgPicture.asset(AssetConst.location, height: 16, width: 16),
+  //               const Gap(8),
+  //               Text("12, Patel Nager, Surat - 395001"),
+  //             ],
+  //           ),
+  //           const Gap(6),
+  //           Row(
+  //             children: [
+  //               SvgPicture.asset(
+  //                 AssetConst.clock,
+  //                 colorFilter: ColorFilter.mode(
+  //                   ColorConst.accentInfo,
+  //                   BlendMode.srcIn,
+  //                 ),
+  //                 height: 16,
+  //                 width: 16,
+  //               ),
+  //               const Gap(8),
+  //               Text("30-40 mi"),
+  //               const Gap(10),
+  //               SvgPicture.asset(
+  //                 AssetConst.route,
+  //                 colorFilter: ColorFilter.mode(
+  //                   ColorConst.accentInfo,
+  //                   BlendMode.srcIn,
+  //                 ),
+  //                 height: 16,
+  //                 width: 16,
+  //               ),
+  //               const Gap(8),
+  //               Text("2.5 Km"),
+  //             ],
+  //           ),
+  //           const Gap(14),
+  //           Row(
+  //             children: [
+  //               Expanded(
+  //                 child: GestureDetector(
+  //                   onTap: () {
+  //                     // Ensure controller is available
+  //                     final newOrderController =
+  //                         Get.isRegistered<NewOrderController>()
+  //                             ? Get.find<NewOrderController>()
+  //                             : Get.put(NewOrderController());
+  //                     // Call acceptOrders API with dynamic order id if available
+  //                     final orderId =
+  //                         newOrderController.orders.isNotEmpty
+  //                             ? newOrderController.orders.first.id
+  //                             : null;
+  //                     if (orderId != null && orderId.isNotEmpty) {
+  //                       newOrderController.acceptOrder(orderId);
+  //                     } else {
+  //                       Get.snackbar('No orders', 'No new orders to accept');
+  //                     }
+  //                   },
+  //                   child: Container(
+  //                     height: 42,
+  //                     width: double.infinity,
+  //                     decoration: BoxDecoration(
+  //                       color: ColorConst.primary,
+  //                       borderRadius: BorderRadius.circular(8),
+  //                     ),
+  //                     alignment: Alignment.center,
+  //                     child: Row(
+  //                       mainAxisSize: MainAxisSize.min,
+  //                       children: [
+  //                         Icon(
+  //                           Icons.check_circle,
+  //                           color: ColorConst.white,
+  //                           size: 16,
+  //                         ),
+  //                         const Gap(4),
+  //                         Text(
+  //                           "Accept",
+  //                           style: TextStyles.button.copyWith(
+  //                             color: ColorConst.white,
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //               const Gap(16),
+  //               Expanded(
+  //                 child: Container(
+  //                   height: 42,
+  //                   width: double.infinity,
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.transparent,
+  //                     border: Border.all(color: ColorConst.primary),
+  //                     borderRadius: BorderRadius.circular(8),
+  //                   ),
+  //                   alignment: Alignment.center,
+  //                   child: Row(
+  //                     mainAxisSize: MainAxisSize.min,
+  //                     children: [
+  //                       Icon(
+  //                         Icons.add_circle,
+  //                         color: ColorConst.primary,
+  //                         size: 16,
+  //                       ),
+  //                       const Gap(4),
+  //                       Text("Skip", style: TextStyles.button),
+  //                     ],
+  //                   ),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   /// Ongoing Order card
   Widget _buildOngoingOrderCard() {

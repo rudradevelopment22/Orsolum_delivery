@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:developer';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -11,12 +13,15 @@ import 'package:orsolum_delivery/models/user_model.dart';
 import 'package:orsolum_delivery/services/socket_service.dart';
 import 'package:orsolum_delivery/utils/storage_utils.dart';
 
+import '../../models/order_model.dart';
+
 class HomeController extends GetxController {
   // User data
   final Rx<User> user = User().obs;
 
   // Loading states
-  final RxBool isLoading = true.obs;
+  // final RxBool isLoading = true.obs;
+  var isLoading = false.obs;
   final RxBool isVerified = false.obs;
 
   // Location related
@@ -27,6 +32,8 @@ class HomeController extends GetxController {
 
   final RxList<dynamic> socketEvents =
       <dynamic>[].obs; // To store socket events
+  // var orders = <OrderModel>[].obs;
+  var orders = <Datum?>[].obs;
 
   // Home data
   final Rx<ApiRes<HomeResModel>> rxApiGetHomeDetails = Rx(ApiRes.loading());
@@ -141,6 +148,7 @@ class HomeController extends GetxController {
     loadUserData();
     _initSocketConnection();
     _listenForDeliveryTasks();
+    fetchNewOrders();
   }
 
   // Initialize socket connection
@@ -285,6 +293,35 @@ class HomeController extends GetxController {
       _socketService.requestDeliveryTasks();
     } catch (e) {
       print('❌ [SOCKET] Error requesting delivery tasks: $e');
+    }
+  }
+
+  Future<void> fetchNewOrders() async {
+    try {
+      isLoading.value = true;
+      // final response = await Dio().get(ApiConst.localBaseUrl + ApiConst.newOrders);
+
+      final response = await Dio().get(
+        "http://localhost:5000/api/deliveryboy/new/orders/v1",
+        options: Options(
+          headers: {'Authorization': 'Bearer ${ApiConst.token}'},
+        ),
+      );
+      log("data: : :: : :: : : ::  ${response.data}");
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        orders.value =
+            (response.data['data'] as List)
+                .map((e) => Datum.fromJson(e))
+                .toList();
+      } else {
+        orders.clear();
+      }
+    } catch (e) {
+      print("Error fetching new orders: $e");
+      orders.clear();
+    } finally {
+      isLoading.value = false;
     }
   }
 }

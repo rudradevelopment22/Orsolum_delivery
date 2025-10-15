@@ -5,8 +5,11 @@ abstract class ApiConst {
   //   "storage_base_url",
   // );
   // static const String googleApiKey = String.fromEnvironment("google_api_key");
+  static const token =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJUnhs8SXVQSMntA3ejlJT26ojzES4';
 
   static const String baseUrl = "https://api.orsolum.com/api";
+  static const String localBaseUrl = "http://localhost:5000/api";
   static const String socketUrl = "https://api.orsolum.com/delivery";
   static const String storageBaseUrl =
       "https://orsolum.s3.ap-south-1.amazonaws.com/";
